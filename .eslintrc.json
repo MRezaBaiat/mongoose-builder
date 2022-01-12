@@ -1,0 +1,60 @@
+{
+  "extends": ["standard","plugin:flowtype/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "settings": {
+    "import/ignore": [".css$","node_modules/*"],
+    "flowtype": {
+      "onlyFilesWithFlowAnnotation": false
+    }
+  },
+  "parserOptions": {
+    "ecmaFeatures": {
+      "experimentalObjectRestSpread": true,
+      "jsx": true
+    },
+    "ecmaVersion": 2018,
+    "sourceType": "module",
+    "comment": true
+  },
+  "plugins": [
+    "flowtype",
+    "import"
+  ],
+  "root": true,
+  "env": {
+    "browser": true,
+    "es6": true,
+    "node": true,
+    "mongo": true
+  },
+  "rules": {
+    "no-return-assign": "off",
+    "quotes": [2, "single"],
+    "no-useless-constructor": "off",
+    "no-use-before-define": "off",
+    "no-redeclare": "off",
+    "no-extend-native": "off",
+    "import/export": 0,
+    "camelcase": "off",
+    "semi": [2, "always"],
+    "no-unused-vars": "warn",
+    "no-useless-escape": "warn",
+    "flowtype/no-types-missing-file-annotation": 0,
+    "import/first": "off",
+    "import/no-absolute-path": "off",
+    "import/no-named-default": "off",
+    "import/no-webpack-loader-syntax": "off",
+    "standard/no-callback-literal": "off",
+    "@typescript-eslint/interface-name-prefix": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-explicit-any": "off"
+  },
+  "ignorePatterns": [
+    ".eslintrc.js"
+  ],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  }
+}

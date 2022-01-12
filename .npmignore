@@ -1,0 +1,15 @@
+tsconfig.json
+tsconfig.dist.json
+node_modules
+.idea
+/src
+test
+package-lock.json
+test.ts
+test.js
+yarn.lock
+.babelrc
+.eslintignore
+.eslintrc.json
+index.ts
+index.js

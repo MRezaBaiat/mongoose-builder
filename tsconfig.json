@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "strict": false,
+    "skipLibCheck": true,
+    "jsx": "react",
+    "module": "CommonJS",
+    "declaration": true,
+    "outDir": "dist",
+    "declarationDir": "dist",
+    "baseUrl": "./",
+    "resolveJsonModule": true,
+    "removeComments": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "target": "es6",
+    "noImplicitAny": false,
+    "moduleResolution": "node",
+    "noUnusedParameters": false,
+    "importHelpers": true,
+    "sourceMap": false,
+    "lib": ["ES6"],
+    "types": [
+      "node"
+    ],
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "paths": {
+      "*/": [
+        "node_modules/*"
+      ]
+    }
+  },
+  "compileOnSave": true,
+  "include": [
+    "src",
+    "index.ts",
+    "index.js"
+  ],
+  "exclude": [
+    "./node_modules/*"
+  ]
+}
