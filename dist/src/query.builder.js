@@ -122,5 +122,11 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
             });
         });
     }
+    clone(modifier) {
+        const c = super.clone(modifier);
+        c.metatype = this.metatype;
+        c.db = this.db;
+        return c;
+    }
 }
 exports.default = QueryBuilder;

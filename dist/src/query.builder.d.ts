@@ -2,8 +2,8 @@ import 'reflect-metadata';
 import { QueryWithHelpers, UpdateWriteOpResult } from 'mongoose';
 import { DataQueryBuilder } from './data.query.builder';
 export default class QueryBuilder<M> extends DataQueryBuilder<M> {
-    private readonly metatype;
-    private readonly db;
+    private metatype;
+    private db;
     constructor(db: any, metatype: any);
     findMany(): Promise<M[] | undefined>;
     findOne(cast?: boolean): Promise<M | undefined>;
@@ -22,4 +22,5 @@ export default class QueryBuilder<M> extends DataQueryBuilder<M> {
         ok: number;
     }>;
     create(data: Partial<M>): Promise<M>;
+    clone(modifier?: (value: this) => void): this;
 }

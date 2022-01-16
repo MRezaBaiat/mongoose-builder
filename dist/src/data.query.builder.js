@@ -218,8 +218,7 @@ class DataQueryBuilder {
     }
     clone(modifier) {
         modifier && modifier(this);
-        const obj = Object.assign(Object.create(this), this);
-        return obj;
+        return Object.assign(Object.create(this), this);
     }
 }
 exports.DataQueryBuilder = DataQueryBuilder;

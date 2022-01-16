@@ -1,5 +1,5 @@
-import { FilterQuery, QueryWithHelpers, UpdateWriteOpResult, UpdateQuery, PopulateOptions } from 'mongoose';
-import { KeysOf } from "../index";
+import { FilterQuery, PopulateOptions, QueryWithHelpers, UpdateQuery, UpdateWriteOpResult } from 'mongoose';
+import { KeysOf } from '../index';
 declare type KeyValType<K, V> = Partial<KeysOf<K, V>> | {
     [key: string]: any;
 };

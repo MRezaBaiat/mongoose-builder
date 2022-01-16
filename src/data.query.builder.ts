@@ -1,13 +1,12 @@
 import {
   FilterQuery,
-  RootQuerySelector,
+  PopulateOptions,
   QueryWithHelpers,
-  UpdateWriteOpResult,
+  RootQuerySelector,
   UpdateQuery,
-  PopulateOptions, isValidObjectId
+  UpdateWriteOpResult
 } from 'mongoose';
-import { addWhiteListFilter, ObjectId } from '../index';
-import {KeysOf} from "../index";
+import {addWhiteListFilter, isValidObjectId, KeysOf, ObjectId} from '../index';
 
 type KeyValType<K, V> = Partial<KeysOf<K, V>> | { [key: string]: any };
 
@@ -320,7 +319,6 @@ export abstract class DataQueryBuilder<T> {
 
   public clone (modifier?: (value: this)=>void): this {
     modifier && modifier(this);
-    const obj = Object.assign(Object.create(this), this);
-    return obj;
+    return Object.assign(Object.create(this), this);
   }
 }

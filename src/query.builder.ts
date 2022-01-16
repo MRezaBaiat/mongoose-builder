@@ -5,8 +5,8 @@ import { DataQueryBuilder } from './data.query.builder';
 import { ObjectId } from '../index';
 
 export default class QueryBuilder<M> extends DataQueryBuilder<M> {
-  private readonly metatype: any;
-  private readonly db: Model<any>;
+  private metatype: any;
+  private db: Model<any>;
   constructor (db, metatype) {
     super();
     this.db = db;
@@ -128,5 +128,12 @@ export default class QueryBuilder<M> extends DataQueryBuilder<M> {
         resolve(data.toObject());
       });
     });
+  }
+
+  clone (modifier?: (value: this) => void): this {
+    const c = super.clone(modifier);
+    c.metatype = this.metatype;
+    c.db = this.db;
+    return c;
   }
 }
