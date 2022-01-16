@@ -104,12 +104,12 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
     }
     deleteOne() {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            return this.db.deleteOne(this.getQuery());
+            return this.db.deleteOne(this.getCondition());
         });
     }
     deleteMany() {
         return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
-            return this.db.deleteMany(this.getQuery());
+            return this.db.deleteMany(this.getCondition());
         });
     }
     create(data) {

@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DataQueryBuilder = void 0;
-const mongoose_1 = require("mongoose");
 const index_1 = require("../index");
 class DataQueryBuilder {
     constructor() {
@@ -15,7 +14,7 @@ class DataQueryBuilder {
         this.searchId = (keyVal, method) => {
             const objects = [];
             Object.keys(keyVal).forEach((k) => {
-                if (keyVal[k] && (0, mongoose_1.isValidObjectId)(keyVal[k])) {
+                if (keyVal[k] && (0, index_1.isValidObjectId)(keyVal[k])) {
                     objects.push({ [k]: (0, index_1.ObjectId)(keyVal[k]) });
                 }
             });

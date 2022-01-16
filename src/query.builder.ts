@@ -112,11 +112,11 @@ export default class QueryBuilder<M> extends DataQueryBuilder<M> {
   }
 
   async deleteOne (): Promise<{ n: number; deletedCount: number; ok: number }> {
-    return this.db.deleteOne(this.getQuery()) as any;
+    return this.db.deleteOne(this.getCondition()) as any;
   }
 
   async deleteMany (): Promise<{ n: number; deletedCount: number; ok: number }> {
-    return this.db.deleteMany(this.getQuery()) as any;
+    return this.db.deleteMany(this.getCondition()) as any;
   }
 
   create (data: Partial<M>): Promise<M> {

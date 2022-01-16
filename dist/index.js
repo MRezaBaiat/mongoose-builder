@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DataQueryBuilder = exports.QueryBuilder = exports.addWhiteListFilter = exports.ObjectId = void 0;
+exports.DataQueryBuilder = exports.QueryBuilder = exports.isValidObjectId = exports.addWhiteListFilter = exports.ObjectId = void 0;
 const tslib_1 = require("tslib");
 const data_query_builder_1 = require("./src/data.query.builder");
 Object.defineProperty(exports, "DataQueryBuilder", { enumerable: true, get: function () { return data_query_builder_1.DataQueryBuilder; } });
 const query_builder_1 = (0, tslib_1.__importDefault)(require("./src/query.builder"));
 exports.QueryBuilder = query_builder_1.default;
+const mongoose_1 = (0, tslib_1.__importDefault)(require("mongoose"));
 exports.ObjectId = require('mongoose').Types.ObjectId;
 function addWhiteListFilter(query, whiteList) {
     if (whiteList && whiteList.length !== 0) {
@@ -13,3 +14,7 @@ function addWhiteListFilter(query, whiteList) {
     }
 }
 exports.addWhiteListFilter = addWhiteListFilter;
+function isValidObjectId(id) {
+    return id && mongoose_1.default.isValidObjectId(id);
+}
+exports.isValidObjectId = isValidObjectId;
