@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { plainToInstance } from 'class-transformer';
-import { QueryWithHelpers, UpdateWriteOpResult, Model } from 'mongoose';
+import mongoose, { QueryWithHelpers, UpdateWriteOpResult, Model } from 'mongoose';
 import { DataQueryBuilder } from './data.query.builder';
 import { ObjectId } from '../index';
 
@@ -11,6 +11,19 @@ export default class QueryBuilder<M> extends DataQueryBuilder<M> {
     super();
     this.db = db;
     this.metatype = metatype;
+  }
+
+  private convertIdFields = (object: any) => {
+    if (!object) {
+      return;
+    }
+    Object.keys(object).forEach((key) => {
+      if (key === '_id') {
+        object[key] = String(object[key]);
+      } else if (typeof object[key] === 'object') {
+        this.convertIdFields(object[key]);
+      }
+    });
   }
 
   async findMany (): Promise<M[] | undefined> {
@@ -24,9 +37,7 @@ export default class QueryBuilder<M> extends DataQueryBuilder<M> {
 
     if (res) {
       res.map((r) => {
-        if (r._id) {
-          r._id = String(r._id);
-        }
+        this.convertIdFields(r);
         return r;
       });
     }
@@ -40,9 +51,8 @@ export default class QueryBuilder<M> extends DataQueryBuilder<M> {
       .sort(query.sort)
       .populate(query.populations);
 
-    if (res && res._id) {
-      res._id = String(res._id);
-    }
+    res && this.convertIdFields(res);
+
     if (res && cast) {
       res = plainToInstance(this.metatype, res);
     }
@@ -80,15 +90,13 @@ export default class QueryBuilder<M> extends DataQueryBuilder<M> {
             results: res.docs
           };
         })
-        .then((res) => {
-          res.results && res.results.map((obj) => {
-            if (obj._id) {
-              obj._id = String(obj._id);
-            }
-            return obj;
-          });
-          return res;
-        })
+          .then((res) => {
+            res.results && res.results.map((obj) => {
+              this.convertIdFields(obj);
+              return obj;
+            });
+            return res;
+          })
     );
   }
 

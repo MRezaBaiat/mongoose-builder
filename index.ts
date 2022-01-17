@@ -15,7 +15,15 @@ export function addWhiteListFilter (query: DataQueryBuilder<any>, whiteList?: st
 }
 
 export function isValidObjectId (id: any) {
-    return id && mongoose.isValidObjectId(id);
+    if (!id) {
+        return false;
+    }
+    try {
+        ObjectId(id);
+        return true;
+    } catch (e) {
+        return false;
+    }
 }
 
 export {

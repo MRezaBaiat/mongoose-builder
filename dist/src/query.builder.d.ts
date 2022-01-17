@@ -5,6 +5,7 @@ export default class QueryBuilder<M> extends DataQueryBuilder<M> {
     private metatype;
     private db;
     constructor(db: any, metatype: any);
+    private convertIdFields;
     findMany(): Promise<M[] | undefined>;
     findOne(cast?: boolean): Promise<M | undefined>;
     query(): Promise<any>;
