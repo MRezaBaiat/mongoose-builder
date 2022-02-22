@@ -67,10 +67,13 @@ export abstract class DataQueryBuilder<T> {
   }
 
   public populate (populations: ({ path: string; model?: string; populate?: any; select?: string } | string)[]) {
+    if(!populations){
+      return;
+    }
     if (!this._populations) {
       this._populations = [];
     }
-    populations && populations.forEach((val) => {
+    populations.forEach((val) => {
       this._populations.push(val);
     });
     return this;

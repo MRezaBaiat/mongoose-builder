@@ -59,10 +59,13 @@ class DataQueryBuilder {
         return this;
     }
     populate(populations) {
+        if (!populations) {
+            return;
+        }
         if (!this._populations) {
             this._populations = [];
         }
-        populations && populations.forEach((val) => {
+        populations.forEach((val) => {
             this._populations.push(val);
         });
         return this;
