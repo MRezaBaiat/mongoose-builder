@@ -125,7 +125,9 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
                 if (err) {
                     return reject(err);
                 }
-                resolve(data.toObject());
+                const obj = data.toObject();
+                obj._id = String(obj._id);
+                resolve(obj);
             });
         });
     }
