@@ -40,15 +40,14 @@ class DataQueryBuilder {
         return this;
     }
     populate(populations) {
-        if (!populations) {
-            return;
+        if (populations) {
+            if (!this._populations) {
+                this._populations = [];
+            }
+            populations.forEach((val) => {
+                this._populations.push(val);
+            });
         }
-        if (!this._populations) {
-            this._populations = [];
-        }
-        populations.forEach((val) => {
-            this._populations.push(val);
-        });
         return this;
     }
     populateFile(path, select) {
@@ -56,12 +55,14 @@ class DataQueryBuilder {
         return this;
     }
     project(projection) {
-        if (!this._projection) {
-            this._projection = {};
+        if (projection) {
+            if (!this._projection) {
+                this._projection = {};
+            }
+            Object.keys(projection).forEach((key) => {
+                this._projection[key] = projection[key];
+            });
         }
-        Object.keys(projection).forEach((key) => {
-            this._projection[key] = projection[key];
-        });
         return this;
     }
     skip(skip) {

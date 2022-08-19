@@ -63,15 +63,14 @@ export abstract class DataQueryBuilder<T> {
   }
 
   public populate (populations: ({ path: string; model?: string; populate?: any; select?: string } | string)[]) {
-    if(!populations){
-      return;
+    if(populations){
+      if (!this._populations) {
+        this._populations = [];
+      }
+      populations.forEach((val) => {
+        this._populations.push(val);
+      });
     }
-    if (!this._populations) {
-      this._populations = [];
-    }
-    populations.forEach((val) => {
-      this._populations.push(val);
-    });
     return this;
   }
 
@@ -83,12 +82,14 @@ export abstract class DataQueryBuilder<T> {
   public project (
     projection: KeysOf<T, 0 | 1 | any> | { [key: string]: 0 | 1 | any }
   ) {
-    if (!this._projection) {
-      this._projection = {};
+    if(projection){
+      if (!this._projection) {
+        this._projection = {};
+      }
+      Object.keys(projection).forEach((key) => {
+        this._projection[key] = projection[key];
+      });
     }
-    Object.keys(projection).forEach((key) => {
-      this._projection[key] = projection[key];
-    });
     return this;
   }
 

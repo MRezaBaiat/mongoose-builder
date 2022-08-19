@@ -27,8 +27,6 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
     });
   }
 
-
-
   async findMany(): Promise<Omit<HydratedDocument<T>, never>[]> {
     const query = this.getQuery();
     const res = await this.db
@@ -45,7 +43,6 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
     }
     return res;
   }
-
 
   async findOne(cast?: boolean): Promise<UnpackedIntersection<HydratedDocument<T>, {}>> {
     const query = this.getQuery();
