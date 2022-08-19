@@ -1,18 +1,13 @@
 import {DataQueryBuilder} from "./src/data.query.builder";
 import QueryBuilder from "./src/query.builder";
-import mongoose from "mongoose";
+import mongoose, {Schema} from "mongoose";
 
 export type KeysOf<K, V> = {
     [P in keyof K]: V
 };
 
 export const ObjectId = require('mongoose').Types.ObjectId;
-
-export function addWhiteListFilter (query: DataQueryBuilder<any>, whiteList?: string[]) {
-    if (whiteList && whiteList.length !== 0) {
-        query.andWhere({ _id: { $in: whiteList.map(i => { return { _id: i }; }) } });
-    }
-}
+export type ObjectId = Schema.Types.ObjectId;
 
 export function isValidObjectId (id: any) {
     if (!id) {

@@ -4,9 +4,10 @@ import {
   QueryWithHelpers,
   RootQuerySelector,
   UpdateQuery,
-  UpdateWriteOpResult
+  UpdateWriteOpResult,
+  HydratedDocument, UnpackedIntersection, LeanDocument
 } from 'mongoose';
-import {addWhiteListFilter, isValidObjectId, KeysOf, ObjectId} from '../index';
+import {KeysOf, ObjectId} from '../index';
 
 type KeyValType<K, V> = Partial<KeysOf<K, V>> | { [key: string]: any };
 
@@ -21,18 +22,13 @@ export abstract class DataQueryBuilder<T> {
   private _limit?: number;
   private _sort?: { [key: string]: 0 | -1 | 1 };
 
-  public whiteListFilter = (whiteList?: string[]) => {
-    addWhiteListFilter(this, whiteList);
-    return this;
-  };
-
-  public withId (id: string) {
+  public withId (id: string | ObjectId) {
     this.id = String(id);
     this._conditions.push({ _id: ObjectId(id) });
     return this;
   }
 
-  public where (entry: Partial<KeysOf<T, any>> | FilterQuery<T>) {
+  public where (entry: FilterQuery<T>) {
     this._conditions.push(entry);
     return this;
   }
@@ -111,21 +107,6 @@ export abstract class DataQueryBuilder<T> {
     return this;
   }
 
-  public searchId = (keyVal: { [key: string]: string | undefined }, method: 'and' | 'or') => {
-    const objects = [] as any[];
-    Object.keys(keyVal).forEach((k) => {
-      if (keyVal[k] && isValidObjectId(keyVal[k])) {
-        objects.push({ [k]: ObjectId(keyVal[k]) });
-      }
-    });
-    if (method === 'and') {
-      this.andWhere(objects);
-    } else if (method === 'or') {
-      this.orWhere(objects);
-    }
-    return this;
-  };
-
   public whereTextLike (
     keyVal: KeyValType<T, string | undefined>,
     method: 'and' | 'or' = 'and'
@@ -142,19 +123,6 @@ export abstract class DataQueryBuilder<T> {
     } else if (method === 'or') {
       this.orWhere(objects);
     }
-    return this;
-  }
-
-  public whereLocaleBaseLike (
-    keyVal: KeyValType<T, string | undefined>,
-    method: 'and' | 'or' = 'and'
-  ) {
-    Object.keys(keyVal).forEach((key) => {
-      this.whereTextLike({ [`${key}.fa`]: keyVal[key] }, method).whereTextLike(
-        { [`${key}.en`]: keyVal[key] },
-        method
-      );
-    });
     return this;
   }
 
@@ -195,21 +163,15 @@ export abstract class DataQueryBuilder<T> {
     return this;
   }
 
-  public whiteList (whiteList?: string[]) {
-    if (whiteList && whiteList.length !== 0) {
-      this.andWhere({
-        // @ts-ignore
-        _id: {
-          $in: whiteList.map((i) => {
-            return { _id: i };
-          })
-        }
-      });
-    }
+  public whiteList (ids: string[] = []) {
+    return this.andWhere({
+      _id: {
+        $in: ids.map((i) => ({ _id: i }))
+      }
+    });
   }
 
   public set (entry: UpdateQuery<T>) {
-    // Record<string, any> | Partial<KeysOf<T, any>> |
     this._updates.push(entry);
     return this;
   }
@@ -296,17 +258,17 @@ export abstract class DataQueryBuilder<T> {
     results: T[];
   }>;
 
-  public abstract findOne(cast?: boolean): Promise<T | undefined>;
+  public abstract findOne(cast?: boolean): Promise<UnpackedIntersection<HydratedDocument<T>, {}> | undefined>;
 
-  public abstract findMany(): Promise<T[]>;
+  public abstract findMany(): Promise<Omit<HydratedDocument<T>, never>[]>;
 
-  public abstract create(data: Partial<T>): Promise<T>;
+  public abstract create(data: Partial<Omit<T, '_id'>>): Promise<HydratedDocument<T & { _id: ObjectId; }> | (LeanDocument<T> & Required<{ _id: unknown; }>)>;
 
   public abstract patch(): Promise<boolean>;
 
-  public abstract updateMany(): QueryWithHelpers<UpdateWriteOpResult, any>;
+  public abstract updateMany(): QueryWithHelpers<UpdateWriteOpResult, T>;
 
-  public abstract updateOne(): QueryWithHelpers<UpdateWriteOpResult, any>;
+  public abstract updateOne(): QueryWithHelpers<UpdateWriteOpResult, T>;
 
   public abstract deleteOne(): Promise<{
     n: number;

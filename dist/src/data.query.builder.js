@@ -7,25 +7,6 @@ class DataQueryBuilder {
         this._updates = [];
         this._conditions = [];
         this._ors = [];
-        this.whiteListFilter = (whiteList) => {
-            (0, index_1.addWhiteListFilter)(this, whiteList);
-            return this;
-        };
-        this.searchId = (keyVal, method) => {
-            const objects = [];
-            Object.keys(keyVal).forEach((k) => {
-                if (keyVal[k] && (0, index_1.isValidObjectId)(keyVal[k])) {
-                    objects.push({ [k]: (0, index_1.ObjectId)(keyVal[k]) });
-                }
-            });
-            if (method === 'and') {
-                this.andWhere(objects);
-            }
-            else if (method === 'or') {
-                this.orWhere(objects);
-            }
-            return this;
-        };
     }
     withId(id) {
         this.id = String(id);
@@ -110,12 +91,6 @@ class DataQueryBuilder {
         }
         return this;
     }
-    whereLocaleBaseLike(keyVal, method = 'and') {
-        Object.keys(keyVal).forEach((key) => {
-            this.whereTextLike({ [`${key}.fa`]: keyVal[key] }, method).whereTextLike({ [`${key}.en`]: keyVal[key] }, method);
-        });
-        return this;
-    }
     andWhere(and) {
         if (Array.isArray(and)) {
             this._conditions.push(...and);
@@ -147,16 +122,12 @@ class DataQueryBuilder {
         });
         return this;
     }
-    whiteList(whiteList) {
-        if (whiteList && whiteList.length !== 0) {
-            this.andWhere({
-                _id: {
-                    $in: whiteList.map((i) => {
-                        return { _id: i };
-                    })
-                }
-            });
-        }
+    whiteList(ids = []) {
+        return this.andWhere({
+            _id: {
+                $in: ids.map((i) => ({ _id: i }))
+            }
+        });
     }
     set(entry) {
         this._updates.push(entry);

@@ -1,12 +1,12 @@
 import 'reflect-metadata';
 import { plainToInstance } from 'class-transformer';
-import mongoose, { QueryWithHelpers, UpdateWriteOpResult, Model } from 'mongoose';
+import mongoose, {QueryWithHelpers, UpdateWriteOpResult, Model, HydratedDocument, UnpackedIntersection, LeanDocument} from 'mongoose';
 import { DataQueryBuilder } from './data.query.builder';
 import { ObjectId } from '../index';
 
-export default class QueryBuilder<M> extends DataQueryBuilder<M> {
+export default class QueryBuilder<T> extends DataQueryBuilder<T> {
   private metatype: any;
-  private db: Model<any>;
+  private db: Model<T>;
   constructor (db, metatype) {
     super();
     this.db = db;
@@ -26,15 +26,16 @@ export default class QueryBuilder<M> extends DataQueryBuilder<M> {
     });
   }
 
-  async findMany (): Promise<M[] | undefined> {
+
+
+  async findMany(): Promise<Omit<HydratedDocument<T>, never>[]> {
     const query = this.getQuery();
     const res = await this.db
-      .find(query.condition, query.projection || { __v: 0 })
-      .sort(query.sort)
-      .populate(query.populations)
-      .skip(<number>query.skip)
-      .limit(<number>query.limit);
-
+        .find(query.condition, query.projection || { __v: 0 })
+        .sort(query.sort)
+        .populate(query.populations)
+        .skip(query.skip)
+        .limit(query.limit);
     if (res) {
       res.map((r) => {
         this.convertIdFields(r);
@@ -44,12 +45,13 @@ export default class QueryBuilder<M> extends DataQueryBuilder<M> {
     return res;
   }
 
-  async findOne (cast = false): Promise<M | undefined> {
+
+  async findOne(cast?: boolean): Promise<UnpackedIntersection<HydratedDocument<T>, {}>> {
     const query = this.getQuery();
     let res = await this.db
-      .findOne(query.condition, query.projection || { __v: 0 })
-      .sort(query.sort)
-      .populate(query.populations);
+        .findOne(query.condition, query.projection || { __v: 0 })
+        .sort(query.sort)
+        .populate(query.populations);
 
     res && this.convertIdFields(res);
 
@@ -127,17 +129,12 @@ export default class QueryBuilder<M> extends DataQueryBuilder<M> {
     return this.db.deleteMany(this.getCondition()) as any;
   }
 
-  create (data: Partial<M>): Promise<M> {
-    return new Promise((resolve, reject) => {
-      this.db.create(data, (err, data) => {
-        if (err) {
-          return reject(err);
-        }
-        const obj = data.toObject();
-        obj._id = String(obj._id);
-        resolve(obj);
-      });
-    });
+  async create (data: Partial<T>): Promise<HydratedDocument<T & { _id: ObjectId; }> | (LeanDocument<T> & Required<{ _id: unknown; }>)> {
+    return this.db.create(data).then((res)=>{
+      const obj = res.toObject();
+      obj._id = String(obj._id);
+      return obj;
+    })
   }
 
   clone (modifier?: (value: this) => void): this {

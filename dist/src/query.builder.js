@@ -25,7 +25,7 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
         this.metatype = metatype;
     }
     findMany() {
-        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const query = this.getQuery();
             const res = yield this.db
                 .find(query.condition, query.projection || { __v: 0 })
@@ -42,8 +42,8 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
             return res;
         });
     }
-    findOne(cast = false) {
-        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+    findOne(cast) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const query = this.getQuery();
             let res = yield this.db
                 .findOne(query.condition, query.projection || { __v: 0 })
@@ -57,7 +57,7 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
         });
     }
     query() {
-        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const query = this.getQuery();
             query.projection = query.projection || {};
             query.skip = query.skip || 0;
@@ -100,7 +100,7 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
         return this.db.updateOne(this.getCondition(), this.getUpdates());
     }
     patch() {
-        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const id = this.getId();
             if (!id) {
                 throw new Error('id must be provided when using patch');
@@ -110,24 +110,21 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
         });
     }
     deleteOne() {
-        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
             return this.db.deleteOne(this.getCondition());
         });
     }
     deleteMany() {
-        return (0, tslib_1.__awaiter)(this, void 0, void 0, function* () {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
             return this.db.deleteMany(this.getCondition());
         });
     }
     create(data) {
-        return new Promise((resolve, reject) => {
-            this.db.create(data, (err, data) => {
-                if (err) {
-                    return reject(err);
-                }
-                const obj = data.toObject();
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return this.db.create(data).then((res) => {
+                const obj = res.toObject();
                 obj._id = String(obj._id);
-                resolve(obj);
+                return obj;
             });
         });
     }
