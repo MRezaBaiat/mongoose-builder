@@ -1,12 +1,13 @@
 import 'reflect-metadata';
 import { plainToInstance } from 'class-transformer';
-import mongoose, {QueryWithHelpers, UpdateWriteOpResult, Model, HydratedDocument, UnpackedIntersection, LeanDocument} from 'mongoose';
+import mongoose, {QueryWithHelpers, UpdateWriteOpResult,PaginateModel, Model, HydratedDocument, UnpackedIntersection, LeanDocument} from 'mongoose';
 import { DataQueryBuilder } from './data.query.builder';
 import { ObjectId } from '../index';
+import * as mongoosePaginate from 'mongoose-paginate-v2';
 
 export default class QueryBuilder<T> extends DataQueryBuilder<T> {
   private metatype: any;
-  private db: Model<T>;
+  private db: PaginateModel<T>;
   constructor (db, metatype) {
     super();
     this.db = db;
@@ -65,10 +66,9 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
     const query = this.getQuery();
     query.projection = query.projection || {};
     query.skip = query.skip || 0;
-    query.limit = query.limit || 50;
+    query.limit = query.limit || 20;
     const { skip, limit, projection, populations, sort } = query;
-    const { db } = this;
-    // @ts-ignore
+
     const options: mongoose.PaginateOptions = {
       projection: projection,
       populate: populations,
@@ -80,9 +80,7 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
       leanWithId: false
     };
 
-    return (
-      db
-        // @ts-ignore
+    return this.db
         .paginate(query.condition, options)
         .then((res) => {
           return {
@@ -99,7 +97,7 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
             });
             return res;
           })
-    );
+
   }
 
   updateMany (): QueryWithHelpers<UpdateWriteOpResult, any> {

@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { QueryWithHelpers, UpdateWriteOpResult, HydratedDocument, UnpackedIntersection, LeanDocument } from 'mongoose';
+import mongoose, { QueryWithHelpers, UpdateWriteOpResult, HydratedDocument, UnpackedIntersection, LeanDocument } from 'mongoose';
 import { DataQueryBuilder } from './data.query.builder';
 import { ObjectId } from '../index';
 export default class QueryBuilder<T> extends DataQueryBuilder<T> {
@@ -9,7 +9,12 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
     private convertIdFields;
     findMany(): Promise<Omit<HydratedDocument<T>, never>[]>;
     findOne(cast?: boolean): Promise<UnpackedIntersection<HydratedDocument<T>, {}>>;
-    query(): Promise<any>;
+    query(): Promise<{
+        total: number;
+        currentPageIndex: number;
+        maxPageIndex: number;
+        results: mongoose.HydratedDocument<T, {}, mongoose.PaginateOptions>[];
+    }>;
     updateMany(): QueryWithHelpers<UpdateWriteOpResult, any>;
     updateOne(): QueryWithHelpers<UpdateWriteOpResult, any>;
     patch(): Promise<boolean>;

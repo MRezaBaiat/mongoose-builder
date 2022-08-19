@@ -61,9 +61,8 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
             const query = this.getQuery();
             query.projection = query.projection || {};
             query.skip = query.skip || 0;
-            query.limit = query.limit || 50;
+            query.limit = query.limit || 20;
             const { skip, limit, projection, populations, sort } = query;
-            const { db } = this;
             const options = {
                 projection: projection,
                 populate: populations,
@@ -74,7 +73,7 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
                 pagination: true,
                 leanWithId: false
             };
-            return (db
+            return this.db
                 .paginate(query.condition, options)
                 .then((res) => {
                 return {
@@ -90,7 +89,7 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
                     return obj;
                 });
                 return res;
-            }));
+            });
         });
     }
     updateMany() {
