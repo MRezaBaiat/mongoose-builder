@@ -33,12 +33,6 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
                 .populate(query.populations)
                 .skip(query.skip)
                 .limit(query.limit);
-            if (res) {
-                res.map((r) => {
-                    this.convertIdFields(r);
-                    return r;
-                });
-            }
             return res;
         });
     }
@@ -49,7 +43,6 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
                 .findOne(query.condition, query.projection || { __v: 0 })
                 .sort(query.sort)
                 .populate(query.populations);
-            res && this.convertIdFields(res);
             if (res && cast) {
                 res = (0, class_transformer_1.plainToInstance)(this.metatype, res);
             }
@@ -84,10 +77,6 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
                 };
             })
                 .then((res) => {
-                res.results && res.results.map((obj) => {
-                    this.convertIdFields(obj);
-                    return obj;
-                });
                 return res;
             });
         });

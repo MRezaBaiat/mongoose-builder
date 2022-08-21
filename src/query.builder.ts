@@ -35,12 +35,12 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
         .populate(query.populations)
         .skip(query.skip)
         .limit(query.limit);
-    if (res) {
+    /*if (res) {
       res.map((r) => {
         this.convertIdFields(r);
         return r;
       });
-    }
+    }*/
     return res;
   }
 
@@ -51,7 +51,7 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
         .sort(query.sort)
         .populate(query.populations);
 
-    res && this.convertIdFields(res);
+    // res && this.convertIdFields(res);
 
     if (res && cast) {
       res = plainToInstance(this.metatype, res);
@@ -88,10 +88,10 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
           };
         })
           .then((res) => {
-            res.results && res.results.map((obj) => {
+            /*res.results && res.results.map((obj) => {
               this.convertIdFields(obj);
               return obj;
-            });
+            });*/
             return res;
           })
 
