@@ -1,9 +1,10 @@
 import 'reflect-metadata';
-import mongoose, { QueryWithHelpers, UpdateWriteOpResult, HydratedDocument, UnpackedIntersection } from 'mongoose';
+import 'mongoose-paginate-v2';
+import mongoose, { QueryWithHelpers, UpdateWriteOpResult, PaginateModel, HydratedDocument, UnpackedIntersection } from 'mongoose';
 import { DataQueryBuilder } from './data.query.builder';
 export default class QueryBuilder<T> extends DataQueryBuilder<T> {
     private metatype;
-    private db;
+    protected db: PaginateModel<T>;
     constructor(db: any, metatype: any);
     private convertIdFields;
     findMany(): Promise<Omit<HydratedDocument<T>, never>[]>;

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
 require("reflect-metadata");
+require("mongoose-paginate-v2");
 const class_transformer_1 = require("class-transformer");
 const data_query_builder_1 = require("./data.query.builder");
 const index_1 = require("../index");
@@ -62,7 +63,7 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
                 limit: limit,
                 offset: skip,
                 sort: sort,
-                lean: true,
+                lean: false,
                 pagination: true,
                 leanWithId: false
             };

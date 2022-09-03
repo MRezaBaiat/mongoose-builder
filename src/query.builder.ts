@@ -1,13 +1,13 @@
 import 'reflect-metadata';
+import 'mongoose-paginate-v2';
 import { plainToInstance } from 'class-transformer';
 import mongoose, {QueryWithHelpers, UpdateWriteOpResult,PaginateModel, Model, HydratedDocument, UnpackedIntersection, LeanDocument} from 'mongoose';
 import { DataQueryBuilder } from './data.query.builder';
 import { ObjectId } from '../index';
-import * as mongoosePaginate from 'mongoose-paginate-v2';
 
 export default class QueryBuilder<T> extends DataQueryBuilder<T> {
   private metatype: any;
-  private db: PaginateModel<T>;
+  protected db: PaginateModel<T>;
   constructor (db, metatype) {
     super();
     this.db = db;
@@ -72,7 +72,7 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
       limit: limit,
       offset: skip,
       sort: sort,
-      lean: true, // Should return plain javascript objects instead of Mongoose documents
+      lean: false,
       pagination: true,
       leanWithId: false
     };
