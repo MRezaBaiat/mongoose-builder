@@ -1,4 +1,4 @@
-import { FilterQuery, PopulateOptions, QueryWithHelpers, UpdateQuery, UpdateWriteOpResult, HydratedDocument, UnpackedIntersection } from 'mongoose';
+import { FilterQuery, PopulateOptions, QueryWithHelpers, UpdateQuery, UpdateWriteOpResult, HydratedDocument, UnpackedIntersection, PaginateModel } from 'mongoose';
 import { KeysOf, ObjectId } from '../index';
 declare type KeyValType<K, V> = Partial<KeysOf<K, V>> | {
     [key: string]: any;
@@ -61,12 +61,7 @@ export declare abstract class DataQueryBuilder<T> {
         sort?: any;
     };
     getId(): string;
-    abstract query(): Promise<{
-        total: number;
-        currentPageIndex: number;
-        maxPageIndex: number;
-        results: T[];
-    }>;
+    abstract query(): ReturnType<PaginateModel<T>['paginate']>;
     abstract findOne(cast?: boolean): Promise<UnpackedIntersection<HydratedDocument<T>, {}> | undefined>;
     abstract findMany(): Promise<Omit<HydratedDocument<T>, never>[]>;
     abstract create(data: Partial<Omit<T, '_id'>>): Promise<HydratedDocument<T>>;

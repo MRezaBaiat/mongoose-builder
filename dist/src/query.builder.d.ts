@@ -9,12 +9,7 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
     private convertIdFields;
     findMany(): Promise<Omit<HydratedDocument<T>, never>[]>;
     findOne(cast?: boolean): Promise<UnpackedIntersection<HydratedDocument<T>, {}>>;
-    query(): Promise<{
-        total: number;
-        currentPageIndex: number;
-        maxPageIndex: number;
-        results: mongoose.HydratedDocument<T, {}, mongoose.PaginateOptions>[];
-    }>;
+    query(): Promise<mongoose.PaginateResult<mongoose.HydratedDocument<T, {}, mongoose.PaginateOptions>>>;
     updateMany(): QueryWithHelpers<UpdateWriteOpResult, any>;
     updateOne(): QueryWithHelpers<UpdateWriteOpResult, any>;
     patch(): Promise<boolean>;

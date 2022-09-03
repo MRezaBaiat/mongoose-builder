@@ -1,4 +1,4 @@
-import {
+import mongoose, {
   FilterQuery,
   PopulateOptions,
   QueryWithHelpers,
@@ -252,12 +252,7 @@ export abstract class DataQueryBuilder<T> {
     return this.id;
   }
 
-  public abstract query(): Promise<{
-    total: number;
-    currentPageIndex: number;
-    maxPageIndex: number;
-    results: T[];
-  }>;
+  public abstract query(): ReturnType<PaginateModel<T>['paginate']>;
 
   public abstract findOne(cast?: boolean): Promise<UnpackedIntersection<HydratedDocument<T>, {}> | undefined>;
 

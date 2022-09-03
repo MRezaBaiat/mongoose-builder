@@ -59,34 +59,35 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
     return res;
   }
 
-  async query () {
-    const query = this.getQuery();
-    query.projection = query.projection || {};
-    query.skip = query.skip || 0;
-    query.limit = query.limit || 20;
-    const { skip, limit, projection, populations, sort } = query;
+  query() {
+      const query = this.getQuery();
+      query.projection = query.projection || {};
+      query.skip = query.skip || 0;
+      query.limit = query.limit || 20;
+      const { skip, limit, projection, populations, sort } = query;
 
-    const options: mongoose.PaginateOptions = {
-      projection: projection,
-      populate: populations,
-      limit: limit,
-      offset: skip,
-      sort: sort,
-      lean: false,
-      pagination: true,
-      leanWithId: false
-    };
+      const options: mongoose.PaginateOptions = {
+        projection: projection,
+        populate: populations,
+        limit: limit,
+        offset: skip,
+        sort: sort,
+        lean: false,
+        pagination: true,
+        leanWithId: false
+      };
 
-    return this.db
-        .paginate(query.condition, options)
-        .then((res) => {
-          return {
-            total: res.totalDocs,
-            currentPageIndex: skip / limit,
-            maxPageIndex: Math.floor((res.totalDocs + limit - 1) / limit) - 1,
-            results: res.docs
-          };
-        })
+      return this.db
+          .paginate(query.condition, options)
+          .then((res) => {
+            /*return {
+              total: res.totalDocs,
+              currentPageIndex: skip / limit,
+              maxPageIndex: Math.floor((res.totalDocs + limit - 1) / limit) - 1,
+              results: res.docs
+            };*/
+            return res;
+          })
           .then((res) => {
             /*res.results && res.results.map((obj) => {
               this.convertIdFields(obj);

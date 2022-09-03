@@ -51,35 +51,28 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
         });
     }
     query() {
-        return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const query = this.getQuery();
-            query.projection = query.projection || {};
-            query.skip = query.skip || 0;
-            query.limit = query.limit || 20;
-            const { skip, limit, projection, populations, sort } = query;
-            const options = {
-                projection: projection,
-                populate: populations,
-                limit: limit,
-                offset: skip,
-                sort: sort,
-                lean: false,
-                pagination: true,
-                leanWithId: false
-            };
-            return this.db
-                .paginate(query.condition, options)
-                .then((res) => {
-                return {
-                    total: res.totalDocs,
-                    currentPageIndex: skip / limit,
-                    maxPageIndex: Math.floor((res.totalDocs + limit - 1) / limit) - 1,
-                    results: res.docs
-                };
-            })
-                .then((res) => {
-                return res;
-            });
+        const query = this.getQuery();
+        query.projection = query.projection || {};
+        query.skip = query.skip || 0;
+        query.limit = query.limit || 20;
+        const { skip, limit, projection, populations, sort } = query;
+        const options = {
+            projection: projection,
+            populate: populations,
+            limit: limit,
+            offset: skip,
+            sort: sort,
+            lean: false,
+            pagination: true,
+            leanWithId: false
+        };
+        return this.db
+            .paginate(query.condition, options)
+            .then((res) => {
+            return res;
+        })
+            .then((res) => {
+            return res;
         });
     }
     updateMany() {
