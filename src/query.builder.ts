@@ -124,12 +124,12 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
     return this.db.deleteMany(this.getCondition()) as any;
   }
 
-  async create (data: Partial<T>): Promise<HydratedDocument<T & { _id: ObjectId; }> | (LeanDocument<T> & Required<{ _id: unknown; }>)> {
-    return this.db.create(data).then((res)=>{
+  async create (data: Partial<T>): Promise<HydratedDocument<T>> {
+    return this.db.create(data);/*.then((res)=>{
       const obj = res.toObject();
       obj._id = String(obj._id);
       return obj;
-    })
+    })*/
   }
 
   clone (modifier?: (value: this) => void): this {

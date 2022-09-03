@@ -109,11 +109,7 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
     }
     create(data) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.db.create(data).then((res) => {
-                const obj = res.toObject();
-                obj._id = String(obj._id);
-                return obj;
-            });
+            return this.db.create(data);
         });
     }
     clone(modifier) {

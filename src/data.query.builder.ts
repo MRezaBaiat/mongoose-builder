@@ -5,7 +5,7 @@ import {
   RootQuerySelector,
   UpdateQuery,
   UpdateWriteOpResult,
-  HydratedDocument, UnpackedIntersection, LeanDocument
+  HydratedDocument, UnpackedIntersection, LeanDocument, PaginateModel
 } from 'mongoose';
 import {KeysOf, ObjectId} from '../index';
 
@@ -263,7 +263,7 @@ export abstract class DataQueryBuilder<T> {
 
   public abstract findMany(): Promise<Omit<HydratedDocument<T>, never>[]>;
 
-  public abstract create(data: Partial<Omit<T, '_id'>>): Promise<HydratedDocument<T & { _id: ObjectId; }> | (LeanDocument<T> & Required<{ _id: unknown; }>)>;
+  public abstract create(data: Partial<Omit<T, '_id'>>): Promise<HydratedDocument<T>>;
 
   public abstract patch(): Promise<boolean>;
 

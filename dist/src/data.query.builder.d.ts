@@ -1,4 +1,4 @@
-import { FilterQuery, PopulateOptions, QueryWithHelpers, UpdateQuery, UpdateWriteOpResult, HydratedDocument, UnpackedIntersection, LeanDocument } from 'mongoose';
+import { FilterQuery, PopulateOptions, QueryWithHelpers, UpdateQuery, UpdateWriteOpResult, HydratedDocument, UnpackedIntersection } from 'mongoose';
 import { KeysOf, ObjectId } from '../index';
 declare type KeyValType<K, V> = Partial<KeysOf<K, V>> | {
     [key: string]: any;
@@ -69,11 +69,7 @@ export declare abstract class DataQueryBuilder<T> {
     }>;
     abstract findOne(cast?: boolean): Promise<UnpackedIntersection<HydratedDocument<T>, {}> | undefined>;
     abstract findMany(): Promise<Omit<HydratedDocument<T>, never>[]>;
-    abstract create(data: Partial<Omit<T, '_id'>>): Promise<HydratedDocument<T & {
-        _id: ObjectId;
-    }> | (LeanDocument<T> & Required<{
-        _id: unknown;
-    }>)>;
+    abstract create(data: Partial<Omit<T, '_id'>>): Promise<HydratedDocument<T>>;
     abstract patch(): Promise<boolean>;
     abstract updateMany(): QueryWithHelpers<UpdateWriteOpResult, T>;
     abstract updateOne(): QueryWithHelpers<UpdateWriteOpResult, T>;

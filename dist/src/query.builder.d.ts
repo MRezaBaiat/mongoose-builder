@@ -1,7 +1,6 @@
 import 'reflect-metadata';
-import mongoose, { QueryWithHelpers, UpdateWriteOpResult, HydratedDocument, UnpackedIntersection, LeanDocument } from 'mongoose';
+import mongoose, { QueryWithHelpers, UpdateWriteOpResult, HydratedDocument, UnpackedIntersection } from 'mongoose';
 import { DataQueryBuilder } from './data.query.builder';
-import { ObjectId } from '../index';
 export default class QueryBuilder<T> extends DataQueryBuilder<T> {
     private metatype;
     private db;
@@ -28,10 +27,6 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
         deletedCount: number;
         ok: number;
     }>;
-    create(data: Partial<T>): Promise<HydratedDocument<T & {
-        _id: ObjectId;
-    }> | (LeanDocument<T> & Required<{
-        _id: unknown;
-    }>)>;
+    create(data: Partial<T>): Promise<HydratedDocument<T>>;
     clone(modifier?: (value: this) => void): this;
 }
