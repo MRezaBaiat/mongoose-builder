@@ -80,11 +80,15 @@ export abstract class DataQueryBuilder<T> {
   }
 
   public project (
-    projection: KeysOf<T, 0 | 1 | any> | { [key: string]: 0 | 1 | any }
+    projection: KeysOf<T, 0 | 1 | any> | { [key: string]: 0 | 1 | any } | KeysOf<T, 0 | 1 | any>[] | { [key: string]: 0 | 1 | any }[]
   ) {
     if(projection){
       if (!this._projection) {
         this._projection = {};
+      }
+      if(Array.isArray(projection)){
+        projection.map(p => this.project(p))
+        return this;
       }
       Object.keys(projection).forEach((key) => {
         this._projection[key] = projection[key];

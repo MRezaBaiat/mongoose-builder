@@ -59,6 +59,10 @@ class DataQueryBuilder {
             if (!this._projection) {
                 this._projection = {};
             }
+            if (Array.isArray(projection)) {
+                projection.map(p => this.project(p));
+                return this;
+            }
             Object.keys(projection).forEach((key) => {
                 this._projection[key] = projection[key];
             });

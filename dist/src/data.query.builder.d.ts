@@ -26,7 +26,9 @@ export declare abstract class DataQueryBuilder<T> {
     populateFile(path: string, select?: string): this;
     project(projection: KeysOf<T, 0 | 1 | any> | {
         [key: string]: 0 | 1 | any;
-    }): this;
+    } | KeysOf<T, 0 | 1 | any>[] | {
+        [key: string]: 0 | 1 | any;
+    }[]): this;
     skip(skip: number): this;
     limit(limit: number): this;
     sort(sort: {
