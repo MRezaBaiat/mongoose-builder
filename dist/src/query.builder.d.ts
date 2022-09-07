@@ -3,7 +3,7 @@ import 'mongoose-paginate-v2';
 import mongoose, { QueryWithHelpers, UpdateWriteOpResult, PaginateModel, HydratedDocument, UnpackedIntersection } from 'mongoose';
 import { DataQueryBuilder } from './data.query.builder';
 export default class QueryBuilder<T> extends DataQueryBuilder<T> {
-    private metatype;
+    protected metatype: any;
     protected db: PaginateModel<T>;
     constructor(db: any, metatype: any);
     private convertIdFields;

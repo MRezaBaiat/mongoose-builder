@@ -6,7 +6,7 @@ import { DataQueryBuilder } from './data.query.builder';
 import { ObjectId } from '../index';
 
 export default class QueryBuilder<T> extends DataQueryBuilder<T> {
-  private metatype: any;
+  protected metatype: any;
   protected db: PaginateModel<T>;
   constructor (db, metatype) {
     super();
