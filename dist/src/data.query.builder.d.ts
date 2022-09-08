@@ -7,6 +7,7 @@ export declare abstract class DataQueryBuilder<T> {
     private id?;
     private _updates;
     private _conditions;
+    private _selection;
     private _ors;
     private _projection;
     protected _populations?: (PopulateOptions | string)[];
@@ -29,6 +30,7 @@ export declare abstract class DataQueryBuilder<T> {
     } | KeysOf<T, 0 | 1 | any>[] | {
         [key: string]: 0 | 1 | any;
     }[]): this;
+    select(selection: string[]): this;
     skip(skip: number): this;
     limit(limit: number): this;
     sort(sort: {
@@ -61,6 +63,7 @@ export declare abstract class DataQueryBuilder<T> {
         skip?: any;
         limit?: any;
         sort?: any;
+        select: string[];
     };
     getId(): string;
     abstract query(): ReturnType<PaginateModel<T>['paginate']>;

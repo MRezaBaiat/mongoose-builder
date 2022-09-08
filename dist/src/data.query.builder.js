@@ -6,6 +6,7 @@ class DataQueryBuilder {
     constructor() {
         this._updates = [];
         this._conditions = [];
+        this._selection = [];
         this._ors = [];
     }
     withId(id) {
@@ -67,6 +68,10 @@ class DataQueryBuilder {
                 this._projection[key] = projection[key];
             });
         }
+        return this;
+    }
+    select(selection) {
+        this._selection.push(...selection);
         return this;
     }
     skip(skip) {
@@ -188,7 +193,8 @@ class DataQueryBuilder {
             populations: this._populations,
             limit: this._limit,
             skip: this._skip,
-            sort: this._sort
+            sort: this._sort,
+            select: this._selection
         };
     }
     getId() {

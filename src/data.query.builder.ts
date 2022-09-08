@@ -15,6 +15,7 @@ export abstract class DataQueryBuilder<T> {
   private id?: string;
   private _updates: UpdateQuery<T>[] = [];
   private _conditions: FilterQuery<T>[] = [];
+  private _selection: string[] = [];
   private _ors: any[] = [];
   private _projection: KeysOf<T, 0 | 1> | { [key: string]: 0 | 1 } | undefined;
   protected _populations?: (PopulateOptions | string)[];
@@ -94,6 +95,11 @@ export abstract class DataQueryBuilder<T> {
         this._projection[key] = projection[key];
       });
     }
+    return this;
+  }
+
+  public select (selection: string[]) {
+    this._selection.push(...selection)
     return this;
   }
 
@@ -240,6 +246,7 @@ export abstract class DataQueryBuilder<T> {
     skip?: any;
     limit?: any;
     sort?: any;
+    select: string[];
     } {
     const condition = this.getCondition();
     return {
@@ -248,7 +255,8 @@ export abstract class DataQueryBuilder<T> {
       populations: this._populations,
       limit: this._limit,
       skip: this._skip,
-      sort: this._sort
+      sort: this._sort,
+      select: this._selection
     };
   }
 

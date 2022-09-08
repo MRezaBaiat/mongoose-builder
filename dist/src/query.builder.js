@@ -33,6 +33,7 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
                 .sort(query.sort)
                 .populate(query.populations)
                 .skip(query.skip)
+                .select(query.select)
                 .limit(query.limit);
             return res;
         });
@@ -43,6 +44,7 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
             let res = yield this.db
                 .findOne(query.condition, query.projection || { __v: 0 })
                 .sort(query.sort)
+                .select(query.select)
                 .populate(query.populations);
             if (res && cast) {
                 res = (0, class_transformer_1.plainToInstance)(this.metatype, res);
@@ -55,13 +57,14 @@ class QueryBuilder extends data_query_builder_1.DataQueryBuilder {
         query.projection = query.projection || {};
         query.skip = query.skip || 0;
         query.limit = query.limit || 20;
-        const { skip, limit, projection, populations, sort } = query;
+        const { skip, limit, projection, populations, sort, select } = query;
         const options = {
             projection: projection,
             populate: populations,
-            limit: limit,
             offset: skip,
-            sort: sort,
+            limit,
+            select,
+            sort,
             lean: false,
             pagination: true,
             leanWithId: false

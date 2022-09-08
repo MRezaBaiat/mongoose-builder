@@ -34,6 +34,7 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
         .sort(query.sort)
         .populate(query.populations)
         .skip(query.skip)
+        .select(query.select)
         .limit(query.limit);
     /*if (res) {
       res.map((r) => {
@@ -49,6 +50,7 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
     let res = await this.db
         .findOne(query.condition, query.projection || { __v: 0 })
         .sort(query.sort)
+        .select(query.select)
         .populate(query.populations);
 
     // res && this.convertIdFields(res);
@@ -64,14 +66,15 @@ export default class QueryBuilder<T> extends DataQueryBuilder<T> {
       query.projection = query.projection || {};
       query.skip = query.skip || 0;
       query.limit = query.limit || 20;
-      const { skip, limit, projection, populations, sort } = query;
+      const { skip, limit, projection, populations, sort, select } = query;
 
       const options: mongoose.PaginateOptions = {
         projection: projection,
         populate: populations,
-        limit: limit,
         offset: skip,
-        sort: sort,
+        limit,
+        select,
+        sort,
         lean: false,
         pagination: true,
         leanWithId: false
