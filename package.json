@@ -1,5 +1,5 @@
 {
-  "name": "@rb/mongoose-builder",
+  "name": "@rezabaiat/mongoose-builder",
   "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,27 +8,32 @@
     "test": "jest"
   },
   "dependencies": {
+
+  },
+  "peerDependencies": {
     "mongoose": "*",
     "mongoose-paginate-v2": "*",
     "reflect-metadata": "*"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-class-properties": "^7.18.6",
-    "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
-    "@babel/plugin-transform-modules-commonjs": "^7.18.6",
-    "@babel/plugin-transform-typescript": "^7.15.0",
-    "@babel/preset-typescript": "^7.18.6",
-    "@typescript-eslint/eslint-plugin": "^5.33.1",
-    "@typescript-eslint/parser": "^5.33.1",
-    "eslint": "^8.22.0",
-    "eslint-config-standard": "^17.0.0",
-    "eslint-config-standard-flow": "^1.0.1",
-    "eslint-plugin-flowtype": "^8.0.3",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.0.0",
-    "eslint-plugin-standard": "^5.0.0",
-    "typescript": "^4.7.4"
+
   },
-  "bundledDependencies": ["mongoose-paginate-v2","mongoose","reflect-metadata"]
+  "optionalDependencies": {
+    "@babel/plugin-proposal-class-properties": "*",
+    "@babel/plugin-proposal-export-namespace-from": "*",
+    "@babel/plugin-transform-modules-commonjs": "*",
+    "@babel/plugin-transform-typescript": "*",
+    "@babel/preset-typescript": "*",
+    "@typescript-eslint/eslint-plugin": "*",
+    "@typescript-eslint/parser": "*",
+    "eslint": "*",
+    "eslint-config-standard": "*",
+    "eslint-config-standard-flow": "*",
+    "eslint-plugin-flowtype": "*",
+    "eslint-plugin-import": "*",
+    "eslint-plugin-node": "*",
+    "eslint-plugin-promise": "*",
+    "eslint-plugin-standard": "*",
+    "typescript": "*"
+  }
 }
