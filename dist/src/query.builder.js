@@ -35,7 +35,19 @@ class QueryBuilder {
         return this;
     }
     populate(populations) {
-        populations && (this._populations = this._populations || []).push(...populations);
+        populations && (this._populations = this._populations || []).push(...populations.map((value) => {
+            if (typeof value === 'string' && value.includes('.')) {
+                const arr = value.split('.');
+                return arr.reduce((total, currentValue, currentIndex) => {
+                    total.path = currentValue;
+                    if (currentIndex !== arr.length - 1) {
+                        total.populate = {};
+                    }
+                    return total.populate;
+                }, {});
+            }
+            return value;
+        }));
         return this;
     }
     project(projection) {
