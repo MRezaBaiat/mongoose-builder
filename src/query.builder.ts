@@ -1,145 +1,304 @@
-import 'reflect-metadata';
 import 'mongoose-paginate-v2';
-import { plainToInstance } from 'class-transformer';
-import mongoose, {QueryWithHelpers, UpdateWriteOpResult,PaginateModel, Model, HydratedDocument, UnpackedIntersection, LeanDocument} from 'mongoose';
-import { DataQueryBuilder } from './data.query.builder';
-import { ObjectId } from '../index';
+import mongoose, {
+  PopulateOptions,
+  PaginateModel,
+  UpdateQuery,
+  QueryOptions,
+    QuerySelector
+} from 'mongoose';
+import {KeysOf, ObjectId} from '../index';
+import _ from 'lodash';
 
-export default class QueryBuilder<T> extends DataQueryBuilder<T> {
-  protected metatype: any;
-  protected db: PaginateModel<T>;
-  constructor (db, metatype) {
-    super();
-    this.db = db;
-    this.metatype = metatype;
+type KeyValType<T> = Partial<{[K in keyof T]: T[K]}> | { [key: string]: WhereType<T> };
+type WhereType<T> = {[key in keyof T]?: QuerySelector<T[key]>} | {[key in keyof T]?: QuerySelector<any>} | Record<string, QuerySelector<any>> | Record<keyof T, any> | Record<string, any>
+
+export class QueryBuilder<T> {
+  protected _conditions: WhereType<T>[] = [];
+  protected _updates: UpdateQuery<T>[] = [];
+  protected _updateFilters?: QueryOptions<T>;
+  protected _projection?: KeysOf<T, 0 | 1> | { [key: string]: 0 | 1 };
+  protected _populations?: (PopulateOptions | string)[];
+  protected _skip?: number;
+  protected _limit?: number;
+  protected _sort?: { [key: string]: 0 | -1 | 1 };
+  constructor (protected model: PaginateModel<T>) {}
+
+  public where (condition: WhereType<T>,mode: 'and' | 'or' = 'and') {
+    if(mode === 'and'){
+      this._conditions.push(condition)
+    }else{
+      this._conditions.push({$or: condition});
+    }
+    return this;
   }
 
-  private convertIdFields = (object: any) => {
-    if (!object) {
-      return;
-    }
-    Object.keys(object).forEach((key) => {
-      if (key === '_id') {
-        object[key] = String(object[key]);
-      } else if (typeof object[key] === 'object') {
-        this.convertIdFields(object[key]);
+  public and (condition: WhereType<T>) {
+    this.model.find({})
+    return this.where(condition);
+  }
+
+  public or (condition: WhereType<T>) {
+    return this.where(condition,'or')
+  }
+
+  public withId (id: string | ObjectId) {
+    return this.where({_id: ObjectId(id)});
+  }
+
+  public arrayIncludes (what: KeyValType<T>) {
+    Object.entries(what).forEach(([key,value])=> this.and({[key]:{$in: value}}));
+    return this;
+  }
+
+  public populate (populations: (PopulateOptions | string)[]) {
+    populations && (this._populations = this._populations || []).push(...populations)
+    return this;
+  }
+
+  public project (projection: KeysOf<T, 0 | 1 | any> | { [key: string]: 0 | 1 | any } | KeysOf<T, 0 | 1 | any>[] | { [key: string]: 0 | 1 | any }[]) {
+    if(projection){
+      if (!this._projection) {
+        this._projection = {};
       }
-    });
-  }
-
-  async findMany(): Promise<Omit<HydratedDocument<T>, never>[]> {
-    const query = this.getQuery();
-    const res = await this.db
-        .find(query.condition, query.projection || { __v: 0 })
-        .sort(query.sort)
-        .populate(query.populations)
-        .skip(query.skip)
-        .select(query.select)
-        .limit(query.limit);
-    /*if (res) {
-      res.map((r) => {
-        this.convertIdFields(r);
-        return r;
+      if(Array.isArray(projection)){
+        projection.map(p => this.project(p))
+        return this;
+      }
+      Object.keys(projection).forEach((key) => {
+        this._projection[key] = projection[key];
       });
-    }*/
-    return res;
-  }
-
-  async findOne(cast?: boolean): Promise<UnpackedIntersection<HydratedDocument<T>, {}>> {
-    const query = this.getQuery();
-    let res = await this.db
-        .findOne(query.condition, query.projection || { __v: 0 })
-        .sort(query.sort)
-        .select(query.select)
-        .populate(query.populations);
-
-    // res && this.convertIdFields(res);
-
-    if (res && cast) {
-      res = plainToInstance(this.metatype, res);
     }
-    return res;
+    return this;
   }
 
-  query() {
-      const query = this.getQuery();
-      query.projection = query.projection || {};
-      query.skip = query.skip || 0;
-      query.limit = query.limit || 20;
-      const { skip, limit, projection, populations, sort, select } = query;
+  public skip (skip: number) {
+    this._skip = skip;
+    return this;
+  }
 
-      const options: mongoose.PaginateOptions = {
-        projection: projection,
-        populate: populations,
+  public limit (limit: number) {
+    this._limit = limit;
+    return this;
+  }
+
+  public sort (sort: { [key: string]: 0 | -1 | 1 }) {
+    this._sort = sort;
+    return this;
+  }
+
+  public textLike (keyVal: KeyValType<T>, method: 'and' | 'or' = 'and') {
+    Object.keys(keyVal).forEach((k) => this.where({ [k]: new RegExp(keyVal[k], 'i') as any },method));
+    return this;
+  }
+
+  public geoNear (
+    entry: Record<keyof T, {lat: number; lng: number}> | Record<string, {lat: number; lng: number}>,
+    distanceKilometers: number,
+    method: 'and' | 'or' = 'and'
+  ) {
+    const radius = distanceKilometers / 6371;
+    Object.keys(entry).forEach((key) => {
+      this.where({
+        [key]:{
+          $geoWithin: {
+            $center: [[entry[key].lat, entry[key].lng], radius]
+          }
+        }
+      },method)
+    });
+    return this;
+  }
+
+  public valueNotMatches (what: Record<keyof T, any[]> | Record<string, any[]>) {
+    Object.entries(what).forEach(([key,value])=> this.where({[key]: {$nin: value}}));
+    return this;
+  }
+
+  public valueMatches (what: Record<keyof T, any[]> | Record<string, any[]>) {
+    Object.entries(what).forEach(([key,value])=> this.where({[key]: {$in: value}}));
+    return this;
+  }
+
+  public whiteListIds (ids: string[] = []) {
+    return this.valueMatches({_id: ids});
+  }
+
+  public set (entry: Record<keyof T, any> | Record<string, any>) {
+    Object.entries(entry).forEach(([key,value]) => this._updates.push({ $set: { [key]: value } as never }));
+    return this;
+  }
+
+  public unset (entry: Record<keyof T, any> | Record<string, any>) {
+    Object.entries(entry).forEach(([key,value]) => this._updates.push({ $unset: { [key]: value } as never }));
+    return this;
+  }
+
+  public modifyArrayElement(entry: Record<keyof T, any> | Record<string, any>){
+    Object.entries(entry).forEach(([key,value]) => this.set({[`${key}.$`]: value}));
+    return this;
+  }
+
+  /**
+   * example:
+   * modifyArrayElements({myArr:{value:newObject,where:{_id:'1'}}})
+   */
+  public modifyArrayElements(entry: {[key in keyof T]: {value: any,where?: Record<string, any>}} | {[key: string]: {value: any,where?: Record<string, any>}}){
+      Object.entries(entry).forEach(([key,{value,where}]) => {
+        const filterKey = (where && Object.keys(where).map(k => (`$[${k}]`)).join('.')) || '$[]';
+        this.set({[`${key}.${filterKey}`]: value});
+        if(where){
+          this.addUpdateFilter({arrayFilters:[where]})
+        }
+      });
+    return this;
+  }
+
+  public addUpdateFilter(options: QueryOptions<T>){
+    this._updateFilters = this._updateFilters || {};
+    Object.entries(options).forEach(([key,value])=>{
+      const existing = this._updateFilters[key];
+      if(!existing || typeof existing !== 'object'){
+        this._updateFilters[key] = options[key]
+      }else if(Array.isArray(existing)){
+        this._updateFilters[key].push(...value)
+      }else{
+        this._updateFilters[key] = {
+          ...this._updateFilters[key],
+          ...value
+        }
+      }
+    })
+    return this;
+  }
+
+  /**
+   * Sets the value of a field to current date, either as a Date or a Timestamp.
+   */
+  public setCurrentDateOn (entry: Record<keyof T, 'date' | 'timestamp'> | Record<string, 'date' | 'timestamp'>) {
+    Object.entries(entry).forEach(([key,value]) => this._updates.push({ $currentDate: { [key]: value } as never }));
+    return this;
+  }
+
+  public addToSet (entry: Record<keyof T, any> | Record<string, any>) {
+    Object.entries(entry).forEach(([key,value]) => this._updates.push({ $addToSet: { [key]: value } as never }));
+    return this;
+  }
+
+  public pull (entry: Record<keyof T, any> | Record<string, any>) {
+    Object.entries(entry).forEach(([key,value]) => this._updates.push({ $pull: { [key]: value } as never }));
+    return this;
+  }
+
+  /**
+   * if {each:true} , the entry value must be an array
+   */
+  public push (entry: Record<keyof T, any> | Record<string, any>,options:{each?: boolean,$sort?: Record<string, 1 | 0 | -1>} = {}) {
+    Object.entries(entry).forEach(([key,value]) => {
+      let update = {$each: options.each ? value : [value]};
+      if(options.$sort){
+        update['$sort'] = options.$sort;
+      }
+      this._updates.push({ $push: { [key]: update } as never })
+    });
+    return this;
+  }
+
+  public getModel(){
+    return this.model;
+  }
+
+  public getCondition () {
+    return this._conditions;
+  }
+
+  public getModified (): UpdateQuery<T> {
+    return _.merge(...this._updates);
+  }
+
+  public getQuery (): {
+    condition: any;
+    projection?: any;
+    populate?: any;
+    skip?: any;
+    limit?: any;
+    sort?: any;
+    } {
+    const condition = this.getCondition();
+    return {
+      condition,
+      projection: this._projection,
+      populate: this._populations,
+      limit: this._limit,
+      skip: this._skip,
+      sort: this._sort,
+    };
+  }
+
+  async  query(options?:Partial<mongoose.PaginateOptions>) {
+      const { skip = 0, limit = 20, projection, populate, sort,condition } = this.getQuery();
+
+      options = {
+        populate,
+        projection,
         offset: skip,
         limit,
-        select,
         sort,
         lean: false,
         pagination: true,
-        leanWithId: false
+        leanWithId: false,
+        ...options
       };
 
-      return this.db
-          .paginate(query.condition, options)
-          .then((res) => {
-            /*return {
-              total: res.totalDocs,
-              currentPageIndex: skip / limit,
-              maxPageIndex: Math.floor((res.totalDocs + limit - 1) / limit) - 1,
-              results: res.docs
-            };*/
-            return res;
-          })
-          .then((res) => {
-            /*res.results && res.results.map((obj) => {
-              this.convertIdFields(obj);
-              return obj;
-            });*/
-            return res;
-          })
-
+      return this.model.paginate(condition, options)
   }
 
-  updateMany (): QueryWithHelpers<UpdateWriteOpResult, any> {
-    return this.db.updateMany(this.getCondition(), this.getUpdates());
+  async findOne() {
+    const {condition,projection,populate,sort} = this.getQuery();
+    return this.model.findOne(condition,
+        projection,
+        {
+          sort,
+          populate
+        });
   }
 
-  updateOne (): QueryWithHelpers<UpdateWriteOpResult, any> {
-    return this.db.updateOne(this.getCondition(), this.getUpdates());
+  async findMany() {
+    const {condition,projection,populate,sort,skip,limit} = this.getQuery();
+    return this.model.find(condition,
+        projection,
+        {
+          sort,
+          populate,
+          skip,
+          limit
+        });
   }
 
-  async patch (): Promise<boolean> {
-    const id = this.getId();
-    if (!id) {
-      throw new Error('id must be provided when using patch');
-    }
-    return (
-      (await this.db.updateOne({ _id: ObjectId(id) }, this.getUpdates()).exec())
-        .modifiedCount === 1
-    );
+  async create (data: Partial<T>) {
+    return this.model.create(data);
   }
 
-  async deleteOne (): Promise<{ n: number; deletedCount: number; ok: number }> {
-    return this.db.deleteOne(this.getCondition()) as any;
+  async updateMany () {
+    return this.model.updateMany(this.getCondition(), this.getModified());
   }
 
-  async deleteMany (): Promise<{ n: number; deletedCount: number; ok: number }> {
-    return this.db.deleteMany(this.getCondition()) as any;
+  async updateOne () {
+    return this.model.updateOne(this.getCondition(), this.getModified());
   }
 
-  async create (data: Partial<T>): Promise<HydratedDocument<T>> {
-    return this.db.create(data);/*.then((res)=>{
-      const obj = res.toObject();
-      obj._id = String(obj._id);
-      return obj;
-    })*/
+  async deleteOne () {
+    return this.model.deleteOne(this.getCondition()) as any;
   }
 
-  clone (modifier?: (value: this) => void): this {
-    const c = super.clone(modifier);
-    c.metatype = this.metatype;
-    c.db = this.db;
+  async deleteMany () {
+    return this.model.deleteMany(this.getCondition()) as any;
+  }
+
+  public clone (modifier?: (value: this)=>void): this {
+    const {model,...rest} = this;
+    const c = Object.assign(Object.create(Object.getPrototypeOf(this)), JSON.parse(JSON.stringify(rest)));
+    c.model = this.model;
+    modifier && modifier(c);
     return c;
   }
 }

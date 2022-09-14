@@ -1,6 +1,5 @@
-import {DataQueryBuilder} from "./src/data.query.builder";
-import QueryBuilder from "./src/query.builder";
-import mongoose, {Schema} from "mongoose";
+import {QueryBuilder} from "./src/query.builder";
+import {Schema} from "mongoose";
 
 export type KeysOf<K, V> = {
     [P in keyof K]: V
@@ -22,6 +21,5 @@ export function isValidObjectId (id: any) {
 }
 
 export {
-    QueryBuilder,
-    DataQueryBuilder
+    QueryBuilder
 }

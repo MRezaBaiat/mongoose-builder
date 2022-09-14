@@ -1,6 +1,6 @@
 {
-  "name": "mongoose-builder",
-  "version": "1.0.99",
+  "name": "@rb/mongoose-builder",
+  "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "private": false,
@@ -8,18 +8,18 @@
     "test": "jest"
   },
   "dependencies": {
+    "mongoose": "*",
+    "mongoose-paginate-v2": "*",
+    "reflect-metadata": "*"
   },
   "devDependencies": {
-    "mongoose-paginate-v2": "^1.7.0",
     "@babel/plugin-proposal-class-properties": "^7.18.6",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
     "@babel/plugin-transform-modules-commonjs": "^7.18.6",
     "@babel/plugin-transform-typescript": "^7.15.0",
     "@babel/preset-typescript": "^7.18.6",
-    "@types/mongoose": "^5.11.97",
     "@typescript-eslint/eslint-plugin": "^5.33.1",
     "@typescript-eslint/parser": "^5.33.1",
-    "class-transformer": "^0.5.1",
     "eslint": "^8.22.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-config-standard-flow": "^1.0.1",
@@ -29,5 +29,6 @@
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-standard": "^5.0.0",
     "typescript": "^4.7.4"
-  }
+  },
+  "bundledDependencies": ["mongoose-paginate-v2","mongoose","reflect-metadata"]
 }
