@@ -76,7 +76,7 @@ export declare class QueryBuilder<T> {
         $sort?: Record<string, 1 | 0 | -1>;
     }): this;
     getModel(): mongoose.PaginateModel<T, {}, {}>;
-    getCondition(): WhereType<T>[];
+    getCondition(): any;
     getModified(): UpdateQuery<T>;
     getQuery(): {
         condition: any;

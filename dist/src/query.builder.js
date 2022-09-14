@@ -38,13 +38,15 @@ class QueryBuilder {
         populations && (this._populations = this._populations || []).push(...populations.map((value) => {
             if (typeof value === 'string' && value.includes('.')) {
                 const arr = value.split('.');
-                return arr.reduce((total, currentValue, currentIndex) => {
+                const object = {};
+                arr.reduce((total, currentValue, currentIndex) => {
                     total.path = currentValue;
                     if (currentIndex !== arr.length - 1) {
                         total.populate = {};
                     }
                     return total.populate;
-                }, {});
+                }, object);
+                return object;
             }
             return value;
         }));
@@ -169,7 +171,7 @@ class QueryBuilder {
         return this.model;
     }
     getCondition() {
-        return this._conditions;
+        return lodash_1.default.merge(...this._conditions);
     }
     getModified() {
         return lodash_1.default.merge(...this._updates);

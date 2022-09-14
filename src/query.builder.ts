@@ -54,13 +54,16 @@ export class QueryBuilder<T> {
     populations && (this._populations = this._populations || []).push(...populations.map((value) =>{
       if(typeof value === 'string' && value.includes('.')){
         const arr = value.split('.');
-        return arr.reduce((total, currentValue, currentIndex) => {
+        const object: any = {};
+
+        arr.reduce((total, currentValue, currentIndex) => {
           total.path = currentValue;
           if (currentIndex !== arr.length - 1) {
             total.populate = {};
           }
           return total.populate;
-        }, {} as any);
+        }, object as any);
+        return object;
       }
       return value;
     }))
@@ -220,7 +223,7 @@ export class QueryBuilder<T> {
   }
 
   public getCondition () {
-    return this._conditions;
+    return _.merge(...this._conditions);
   }
 
   public getModified (): UpdateQuery<T> {
