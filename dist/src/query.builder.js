@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QueryBuilder = void 0;
 const tslib_1 = require("tslib");
+const lodash_1 = tslib_1.__importDefault(require("lodash"));
 require("mongoose-paginate-v2");
 const index_1 = require("../index");
-const lodash_1 = tslib_1.__importDefault(require("lodash"));
 class QueryBuilder {
     constructor(model) {
         this.model = model;
@@ -12,17 +12,11 @@ class QueryBuilder {
         this._updates = [];
     }
     where(condition, mode = 'and') {
-        if (mode === 'and') {
-            this._conditions.push(condition);
-        }
-        else {
-            this._conditions.push({ $or: condition });
-        }
+        this._conditions.push(mode === 'or' ? { $or: condition } : condition);
         return this;
     }
     and(condition) {
-        this.model.find({});
-        return this.where(condition);
+        return this.where(condition, 'and');
     }
     or(condition) {
         return this.where(condition, 'or');
@@ -30,41 +24,41 @@ class QueryBuilder {
     withId(id) {
         return this.where({ _id: (0, index_1.ObjectId)(id) });
     }
-    arrayIncludes(what) {
-        Object.entries(what).forEach(([key, value]) => this.and({ [key]: { $in: value } }));
+    arrayIncludes(values) {
+        Object.entries(values).forEach(([key, val]) => {
+            this.and({ [key]: { $in: val } });
+        });
         return this;
     }
     populate(populations) {
-        populations && (this._populations = this._populations || []).push(...populations.map((value) => {
+        if (!populations)
+            return this;
+        this._populations = this._populations || [];
+        populations.forEach(value => {
             if (typeof value === 'string' && value.includes('.')) {
-                const arr = value.split('.');
-                const object = {};
-                arr.reduce((total, currentValue, currentIndex) => {
-                    total.path = currentValue;
-                    if (currentIndex !== arr.length - 1) {
-                        total.populate = {};
-                    }
-                    return total.populate;
-                }, object);
-                return object;
+                const paths = value.split('.');
+                const nestedPopulate = paths.reduceRight((acc, path) => ({ path, populate: acc }), null);
+                this._populations.push(nestedPopulate);
             }
-            return value;
-        }));
+            else {
+                this._populations.push(value);
+            }
+        });
         return this;
     }
     project(projection) {
-        if (projection) {
-            if (!this._projection) {
-                this._projection = {};
-            }
-            if (Array.isArray(projection)) {
-                projection.map(p => this.project(p));
-                return this;
-            }
-            Object.keys(projection).forEach((key) => {
-                this._projection[key] = projection[key];
-            });
-        }
+        if (!projection)
+            return this;
+        this._projection = this._projection || {};
+        const projections = Array.isArray(projection) ? projection : [projection];
+        projections.forEach(p => Object.entries(p).forEach(([key, value]) => {
+            this._projection[key] = value;
+        }));
+        return this;
+    }
+    page(page, limit) {
+        this.skip((page - 1) * limit);
+        this.limit(limit);
         return this;
     }
     skip(skip) {
@@ -79,90 +73,92 @@ class QueryBuilder {
         this._sort = sort;
         return this;
     }
-    textLike(keyVal, method = 'and') {
-        Object.keys(keyVal).forEach((k) => this.where({ [k]: new RegExp(keyVal[k], 'i') }, method));
-        return this;
-    }
-    geoNear(entry, distanceKilometers, method = 'and') {
-        const radius = distanceKilometers / 6371;
-        Object.keys(entry).forEach((key) => {
-            this.where({
-                [key]: {
-                    $geoWithin: {
-                        $center: [[entry[key].lat, entry[key].lng], radius]
-                    }
-                }
-            }, method);
+    textLike(fields, mode = 'and') {
+        Object.entries(fields).forEach(([key, val]) => {
+            this.where({ [key]: new RegExp(val, 'i') }, mode);
         });
         return this;
     }
-    valueNotMatches(what) {
-        Object.entries(what).forEach(([key, value]) => this.where({ [key]: { $nin: value } }));
+    geoNear(locations, distanceKm, mode = 'and') {
+        const radius = distanceKm / 6371;
+        Object.entries(locations).forEach(([key, { lat, lng }]) => {
+            this.where({
+                [key]: {
+                    $geoWithin: {
+                        $center: [[lat, lng], radius]
+                    }
+                }
+            }, mode);
+        });
         return this;
     }
-    valueMatches(what) {
-        Object.entries(what).forEach(([key, value]) => this.where({ [key]: { $in: value } }));
+    valueMatches(values) {
+        Object.entries(values).forEach(([key, val]) => this.where({ [key]: { $in: val } }));
+        return this;
+    }
+    valueNotMatches(values) {
+        Object.entries(values).forEach(([key, val]) => this.where({ [key]: { $nin: val } }));
         return this;
     }
     whiteListIds(ids = []) {
         return this.valueMatches({ _id: ids });
     }
-    set(entry) {
-        Object.entries(entry).forEach(([key, value]) => this._updates.push({ $set: { [key]: value } }));
+    set(fields) {
+        this._updates.push({ $set: fields });
         return this;
     }
-    unset(entry) {
-        Object.entries(entry).forEach(([key, value]) => this._updates.push({ $unset: { [key]: value } }));
+    unset(fields) {
+        this._updates.push({ $unset: fields });
         return this;
     }
-    modifyArrayElement(entry) {
-        Object.entries(entry).forEach(([key, value]) => this.set({ [`${key}.$`]: value }));
-        return this;
+    modifyArrayElement(fields) {
+        const updated = Object.entries(fields).reduce((acc, [key, val]) => {
+            acc[`${key}.$`] = val;
+            return acc;
+        }, {});
+        return this.set(updated);
     }
-    modifyArrayElements(entry) {
-        Object.entries(entry).forEach(([key, { value, where }]) => {
-            const filterKey = (where && Object.keys(where).map(k => (`$[${k}]`)).join('.')) || '$[]';
+    modifyArrayElements(fields) {
+        Object.entries(fields).forEach(([key, { value, where }]) => {
+            const filterKey = where ? Object.keys(where).map(k => `$[${k}]`).join('.') : '$[]';
             this.set({ [`${key}.${filterKey}`]: value });
-            if (where) {
+            if (where)
                 this.addUpdateFilter({ arrayFilters: [where] });
-            }
         });
         return this;
     }
     addUpdateFilter(options) {
         this._updateFilters = this._updateFilters || {};
         Object.entries(options).forEach(([key, value]) => {
-            const existing = this._updateFilters[key];
-            if (!existing || typeof existing !== 'object') {
-                this._updateFilters[key] = options[key];
-            }
-            else if (Array.isArray(existing)) {
+            if (Array.isArray(this._updateFilters[key])) {
                 this._updateFilters[key].push(...value);
             }
-            else {
+            else if (typeof value === 'object' && typeof this._updateFilters[key] === 'object') {
                 this._updateFilters[key] = Object.assign(Object.assign({}, this._updateFilters[key]), value);
+            }
+            else {
+                this._updateFilters[key] = value;
             }
         });
         return this;
     }
-    setCurrentDateOn(entry) {
-        Object.entries(entry).forEach(([key, value]) => this._updates.push({ $currentDate: { [key]: value } }));
+    setCurrentDateOn(fields) {
+        this._updates.push({ $currentDate: fields });
         return this;
     }
-    addToSet(entry) {
-        Object.entries(entry).forEach(([key, value]) => this._updates.push({ $addToSet: { [key]: value } }));
+    addToSet(fields) {
+        this._updates.push({ $addToSet: fields });
         return this;
     }
-    pull(entry) {
-        Object.entries(entry).forEach(([key, value]) => this._updates.push({ $pull: { [key]: value } }));
+    pull(fields) {
+        this._updates.push({ $pull: fields });
         return this;
     }
-    push(entry, options = {}) {
-        Object.entries(entry).forEach(([key, value]) => {
-            let update = { $each: options.each ? value : [value] };
-            if (options.$sort) {
-                update['$sort'] = options.$sort;
-            }
+    push(fields, options = {}) {
+        Object.entries(fields).forEach(([key, value]) => {
+            const update = { $each: options.each ? value : [value] };
+            if (options.$sort)
+                update.$sort = options.$sort;
             this._updates.push({ $push: { [key]: update } });
         });
         return this;
@@ -171,49 +167,39 @@ class QueryBuilder {
         return this.model;
     }
     getCondition() {
-        return lodash_1.default.merge(...this._conditions);
+        return lodash_1.default.merge({}, ...this._conditions);
     }
     getModified() {
-        return lodash_1.default.merge(...this._updates);
+        return lodash_1.default.merge({}, ...this._updates);
     }
     getQuery() {
-        const condition = this.getCondition();
         return {
-            condition,
+            condition: this.getCondition(),
             projection: this._projection,
             populate: this._populations,
-            limit: this._limit,
             skip: this._skip,
-            sort: this._sort,
+            limit: this._limit,
+            sort: this._sort
         };
     }
-    query(options) {
+    paginate(options) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const { skip = 0, limit = 20, projection, populate, sort, condition } = this.getQuery();
-            options = Object.assign({ populate,
+            const { condition, projection, populate, sort, skip = 0, limit = 20 } = this.getQuery();
+            return this.model.paginate(condition, Object.assign({ populate,
                 projection, offset: skip, limit,
-                sort, lean: false, pagination: true, leanWithId: false }, options);
-            return this.model.paginate(condition, options);
+                sort, lean: false, pagination: true, leanWithId: false }, options));
         });
     }
     findOne() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const { condition, projection, populate, sort } = this.getQuery();
-            return this.model.findOne(condition, projection, {
-                sort,
-                populate
-            });
+            return this.model.findOne(condition, projection, { sort, populate });
         });
     }
     findMany() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const { condition, projection, populate, sort, skip, limit } = this.getQuery();
-            return this.model.find(condition, projection, {
-                sort,
-                populate,
-                skip,
-                limit
-            });
+            return this.model.find(condition, projection, { sort, populate, skip, limit });
         });
     }
     create(data) {
@@ -221,14 +207,14 @@ class QueryBuilder {
             return this.model.create(data);
         });
     }
-    updateMany() {
-        return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.model.updateMany(this.getCondition(), this.getModified());
-        });
-    }
     updateOne() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.model.updateOne(this.getCondition(), this.getModified());
+            return this.model.updateOne(this.getCondition(), this.getModified(), this._updateFilters);
+        });
+    }
+    updateMany() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return this.model.updateMany(this.getCondition(), this.getModified(), this._updateFilters);
         });
     }
     deleteOne() {
@@ -242,11 +228,11 @@ class QueryBuilder {
         });
     }
     clone(modifier) {
-        const _a = this, { model } = _a, rest = tslib_1.__rest(_a, ["model"]);
-        const c = Object.assign(Object.create(Object.getPrototypeOf(this)), JSON.parse(JSON.stringify(rest)));
-        c.model = this.model;
-        modifier && modifier(c);
-        return c;
+        const instance = new this.constructor(this.model);
+        Object.assign(instance, lodash_1.default.cloneDeep(this));
+        if (modifier)
+            modifier(instance);
+        return instance;
     }
 }
 exports.QueryBuilder = QueryBuilder;
