@@ -84,6 +84,12 @@ export class QueryBuilder<T> {
     return this;
   }
 
+  public page(page: number,limit: number){
+    this.skip((page - 1) * limit);
+    this.limit(limit);
+    return this;
+  }
+
   public skip(skip: number) {
     this._skip = skip;
     return this;
@@ -225,7 +231,7 @@ export class QueryBuilder<T> {
     };
   }
 
-  public async query(options?: Partial<mongoose.PaginateOptions>) {
+  public async paginate(options?: Partial<mongoose.PaginateOptions>) {
     const { condition, projection, populate, sort, skip = 0, limit = 20 } = this.getQuery();
 
     return this.model.paginate(condition, {
